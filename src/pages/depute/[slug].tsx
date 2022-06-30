@@ -15,9 +15,11 @@ import SEO, { PageType } from "components/seo/seo"
 import GroupeEtParti from "src/components/deputy/groupes/groupe-parti"
 import Missions from "src/components/deputy/missions-parlementaires/missions"
 import { getOrganismes } from "src/utils/augora-objects/deputy/organismes"
+import dayjs from "dayjs"
 
 interface IDeputy {
   depute: Deputy.Deputy
+  formatedDate: string
   activites: { [Activites: string]: { [data: string]: Deputy.Activite[] } }[]
 }
 
@@ -25,10 +27,11 @@ interface IDeputy {
 //   return "--" + color.name + "-color :" + color.hex + ";\n"
 // })
 
-export default function Deputy({ depute }: IDeputy) {
+export default function Deputy({ depute, formatedDate }: IDeputy) {
   const deputy = depute
   const color = deputy.GroupeParlementaire.CouleurDetail
   const organismes = getOrganismes(deputy)
+
   return (
     <>
       <SEO pageType={PageType.Depute} depute={deputy} />
@@ -48,17 +51,21 @@ export default function Deputy({ depute }: IDeputy) {
           <Missions {...organismes} color={color} size="medium" wip={false} />
         </div>
       </div>
+      <span>Date regenerated: {formatedDate}</span>
     </>
   )
 }
 
 export async function getStaticProps({ params: { slug } }: { params: { slug: string } }) {
   const depute: Deputy.Deputy = await getDepute(slug)
+  const now = dayjs()
+  const formatedDate = dayjs(now).toISOString()
 
   return {
     props: {
       depute: depute,
       title: depute.Nom,
+      formatedDate,
     },
   }
 }
@@ -72,6 +79,6 @@ export async function getStaticPaths() {
         slug: d.Slug,
       },
     })),
-    fallback: false,
+    fallback: "blocking",
   }
 }
